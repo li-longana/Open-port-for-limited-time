@@ -48,19 +48,24 @@ elif [ "$FIREWALL" = "firewalld" ]; then
     echo "端口 $PORT 已使用 firewalld 开放"
 fi
 
-# 睡眠指定时间
-sleep "$TIME_SECONDS"
+# 睡眠并在后台运行关闭端口命令
+{
+    sleep "$TIME_SECONDS"
 
-# 关闭端口
-if [ "$FIREWALL" = "ufw" ]; then
-    sudo ufw deny "$PORT"
-    sudo ufw reload
-    echo "端口 $PORT 已使用 ufw 关闭"
-elif [ "$FIREWALL" = "firewalld" ]; then
-    sudo firewall-cmd --zone=public --remove-port="$PORT"/tcp --permanent
-    sudo firewall-cmd --reload
-    echo "端口 $PORT 已使用 firewalld 关闭"
-fi
+    # 关闭端口
+    if [ "$FIREWALL" = "ufw" ]; then
+        sudo ufw deny "$PORT"
+        sudo ufw reload
+        echo "端口 $PORT 已使用 ufw 关闭"
+    elif [ "$FIREWALL" = "firewalld" ]; then
+        sudo firewall-cmd --zone=public --remove-port="$PORT"/tcp --permanent
+        sudo firewall-cmd --reload
+        echo "端口 $PORT 已使用 firewalld 关闭"
+    fi
+} &
+
+echo "后台进程启动成功，脚本将在 $TIME_MINUTES 分钟后自动关闭端口 $PORT。"
+
 ```
 保存和运行脚本
 将上述脚本内容保存为 manage_port.sh 文件：
